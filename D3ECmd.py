@@ -13,8 +13,8 @@ sympy.mpmath 0.18
 
 '''
 from __future__ import division
-from ThreeDExpressUtil import readData, getParamsBayesian, cramerVonMises, logStatus, goodnessOfFit
-from ThreeDExpressUtil import Params, BioParams, Status 
+from D3EUtil import readData, getParamsBayesian, getParamsMoments, cramerVonMises, logStatus, goodnessOfFit
+from D3EUtil import Params, BioParams, Status 
 
 from argparse import ArgumentParser, FileType
 from numpy import mean, log2
@@ -30,8 +30,8 @@ parser.add_argument(action = 'store', type = str, nargs = 1, dest = 'label1', he
 parser.add_argument(action = 'store', type = str, nargs = 1, dest = 'label2', help = 'Label for the second cell type / condition')
 
 parser.add_argument('-m', '--mode', action = 'store', type = int, dest='mode', default = 1, choices =[0,1,2,3], help = 'Mode of operation\n ' \
-													'0: Output pValue only\n'
-													'1: Output parameters and pValue (default)\n'\
+													'0: Apply Method of moments\n'
+													'1: Apply Bayesian approach (default)\n'\
 													'2: Additionally outputs GOF\n'
 													'3: Additionally outputs GOF and means\n')
 parser.add_argument('-n','--normalise', action = 'store', type = int, dest='normalise', default = 1, choices = [0,1], help='Normalise the data')
@@ -54,17 +54,29 @@ for p1,p2,idx in zip(data1, data2, ids):
 		logStatus( Status(1, idx, "Could not estimate Cramer-von Mises statistic. Further analysis aborted.") )
 		continue
 
+	if args.mode == 0:
+		params1 = getParamsMoments(p1)
+		params2 = getParamsMoments(p2)
+
+		if (params1.alpha <=0  or params1.beta <= 0 or params1.gamma <=0 or
+			params2.alpha <=0  or params2.beta <= 0 or params2.gamma <=0):
+				logStatus( Status(1, idx, "Could not estimate parameters.") )
+				continue
+
+		bioParams1 = BioParams(size = params1.gamma / params1.beta, freq = 1 / params1.alpha, duty = params1.alpha / (params1.alpha + params1.beta) )
+		bioParams2 = BioParams(size = params2.gamma / params2.beta, freq = 1 / params2.alpha, duty = params2.alpha / (params2.alpha + params2.beta) )
+
 	if args.mode > 0:
 		params1, bioParams1 = getParamsBayesian(p1)
 		params2, bioParams2 = getParamsBayesian(p2)
 
-		tauP = cramerVonMises(bioParams1.tau.sample, bioParams2.tau.sample)
-		checkCramerVonMises(tauP, 'for tau', idx)
+		sizeP = cramerVonMises(bioParams1.size.sample, bioParams2.size.sample)
+		checkCramerVonMises(sizeP, 'for size', idx)
 
-		fP = cramerVonMises(bioParams1.f.sample, bioParams2.f.sample)
+		freqP = cramerVonMises(bioParams1.freq.sample, bioParams2.freq.sample)
 		checkCramerVonMises(fP, 'for f', idx)
 
-		tP = cramerVonMises(bioParams1.t.sample, bioParams2.t.sample)
+		dutyP = cramerVonMises(bioParams1.duty.sample, bioParams2.duty.sample)
 		checkCramerVonMises(tP, 'for t', idx)
 
 	if args.mode > 1:
@@ -75,7 +87,14 @@ for p1,p2,idx in zip(data1, data2, ids):
 		checkCramerVonMises(gof1, 'Goodnes of fit for a second cell type', idx)
 
 	if args.mode == 0:
-		args.outputFile.write('{0:s}\t{1:2.2e}\t{2:2.2f}\t{3:2.2f}\n'.format(idx, difference, mean(p1), mean(p2)))
+		args.outputFile.write('{0:s}\t{1:2.2f}\t{2:2.2f}\t{3:2.2f}\t{4:2.2f}\t{5:2.2f}\t{6:2.2f}'
+								'\t{7:2.2f}\t{8:2.2f}\t{9:2.2f}\t{10:2.2f}\t{11:2.2f}\t{12:2.2f}'
+								'\t{13:2.2e}\t{14:2.2f}\t{15:2.2f}\n'.format(idx,
+								params1.alpha, params1.beta, params1.gamma,
+								params2.alpha, params2.beta, params2.gamma,
+								bioParams1.size, bioParams1.freq, bioParams1.duty,
+								bioParams2.size, bioParams2.freq, bioParams2.duty,
+								difference, mean(p1), mean(p2)))
 	elif args.mode == 1:
 		args.outputFile.write('{0:s}\t\t{1:2.2f}\t{2:2.2f}\t{3:2.2f}\t\t{4:2.2f}\t{5:2.2f}\t{6:2.2f}\t\t'
 								'{7:2.2f}\t{8:2.2f}\t{9:2.2f}\t\t{10:2.2f}\t{11:2.2f}\t{12:2.2f}\t\t'
@@ -83,12 +102,12 @@ for p1,p2,idx in zip(data1, data2, ids):
 								'{16:2.2e}\t{17:2.2e}\t{18:2.2e}\t\t{19:2.2e}\n'.format(idx,
 								params1.alpha.mean(), params1.beta.mean(), params1.gamma.mean(),
 								params2.alpha.mean(), params2.beta.mean(), params2.gamma.mean(),
-								bioParams1.tau.mean(), bioParams1.f.mean(), bioParams1.t.mean(),
-								bioParams2.tau.mean(), bioParams2.f.mean(), bioParams2.t.mean(),
-								log2( bioParams2.tau.mean() / bioParams1.tau.mean()),
-								log2( bioParams2.f.mean() / bioParams1.f.mean()),
-								log2( bioParams2.t.mean() / bioParams1.t.mean()),
-								tauP,fP, tP, difference) )
+								bioParams1.size.mean(), bioParams1.freq.mean(), bioParams1.duty.mean(),
+								bioParams2.size.mean(), bioParams2.freq.mean(), bioParams2.duty.mean(),
+								log2( bioParams2.size.mean() / bioParams1.size.mean()),
+								log2( bioParams2.freq.mean() / bioParams1.freq.mean()),
+								log2( bioParams2.duty.mean() / bioParams1.duty.mean()),
+								sizeP,fP, tP, difference) )
 	elif args.mode == 2:
 		args.outputFile.write('{0:s}\t\t{1:2.2f}\t{2:2.2f}\t{3:2.2f}\t{4:2.2e}\t\t'
 								'{5:2.2f}\t{6:2.2f}\t{7:2.2f}\t{8:2.2e}\t\t'
@@ -97,12 +116,12 @@ for p1,p2,idx in zip(data1, data2, ids):
 								'{18:2.2e}\t{19:2.2e}\t{20:2.2e}\t\t{21:2.2e}\n'.format(idx,
 								params1.alpha.mean(), params1.beta.mean(), params1.gamma.mean(), gof1,
 								params2.alpha.mean(), params2.beta.mean(), params2.gamma.mean(), gof2,
-								bioParams1.tau.mean(), bioParams1.f.mean(), bioParams1.t.mean(),
-								bioParams2.tau.mean(), bioParams2.f.mean(), bioParams2.t.mean(),
-								log2( bioParams2.tau.mean() / bioParams1.tau.mean()),
-								log2( bioParams2.f.mean() / bioParams1.f.mean()),
-								log2( bioParams2.t.mean() / bioParams1.t.mean()),
-								tauP,fP, tP, difference) )
+								bioParams1.size.mean(), bioParams1.freq.mean(), bioParams1.duty.mean(),
+								bioParams2.size.mean(), bioParams2.freq.mean(), bioParams2.duty.mean(),
+								log2( bioParams2.size.mean() / bioParams1.size.mean()),
+								log2( bioParams2.freq.mean() / bioParams1.freq.mean()),
+								log2( bioParams2.duty.mean() / bioParams1.duty.mean()),
+								sizeP,fP, tP, difference) )
 	elif args.mode == 3:
 		args.outputFile.write('{0:s}\t\t{1:2.2f}\t{2:2.2f}\t{3:2.2f}\t{4:2.2e}\t\t'
 								'{5:2.2f}\t{6:2.2f}\t{7:2.2f}\t{8:2.2e}\t\t'
@@ -111,12 +130,12 @@ for p1,p2,idx in zip(data1, data2, ids):
 								'{18:2.2e}\t{19:2.2e}\t{20:2.2e}\t\t{21:2.2e}\t\t{22:2.2f}\t{23:2.2f}\n'.format(idx,
 								params1.alpha.mean(), params1.beta.mean(), params1.gamma.mean(), gof1,
 								params2.alpha.mean(), params2.beta.mean(), params2.gamma.mean(), gof2,
-								bioParams1.tau.mean(), bioParams1.f.mean(), bioParams1.t.mean(),
-								bioParams2.tau.mean(), bioParams2.f.mean(), bioParams2.t.mean(),
-								log2( bioParams2.tau.mean() / bioParams1.tau.mean()),
-								log2( bioParams2.f.mean() / bioParams1.f.mean()),
-								log2( bioParams2.t.mean() / bioParams1.t.mean()),
-								tauP,fP, tP, difference, mean(p1), mean(p2)) )
+								bioParams1.size.mean(), bioParams1.freq.mean(), bioParams1.duty.mean(),
+								bioParams2.size.mean(), bioParams2.freq.mean(), bioParams2.duty.mean(),
+								log2( bioParams2.size.mean() / bioParams1.size.mean()),
+								log2( bioParams2.freq.mean() / bioParams1.freq.mean()),
+								log2( bioParams2.duty.mean() / bioParams1.duty.mean()),
+								sizeP,fP, tP, difference, mean(p1), mean(p2)) )
 
 	logStatus( Status(0, idx, "Analysis complete.") )
 

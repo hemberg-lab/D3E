@@ -31,7 +31,7 @@ mp.mp.dps = 30
 mp.mp.pretty = True
 
 Params = namedtuple("Params", ["alpha", "beta", "gamma", "c"])
-BioParams = namedtuple("BioParams", ["tau", "f", "t"])
+BioParams = namedtuple("BioParams", ["size", "freq", "duty"])
 Status = namedtuple("LineStatus", ["code", "idx", "message"])
 
 def logStatus(status):
@@ -58,23 +58,6 @@ def _normalisationWeights(data):
 	geneGM = gmean(data+1, 1)
 	weights = array( [median( (data[:,i]+1) / geneGM) for i in range(nCells)] )
 	return weights
-
-# Normalise read-count table using 'DESeq' method
-# Anders, Simon, Wolfgang Huber, 2010, Differential expression analysis for sequence count data, Genome Biology 11, R106.
-# def _normalise(data):
-	
-# 	# data = array(data, dtype='f')
-
-# 	nGenes = data.shape[0]
-# 	nCells = data.shape[1]
-
-# 	geneGM = gmean(data+1, 1)
-
-# 	weight = array( [median( (data[:,i]+1) / geneGM) for i in range(nCells)] )
-
-# 	dataOut = [ rint(data[i,:] / weight).astype(int).tolist() for i in range(nGenes) ]
-
-# 	return dataOut
 
 # Read input data file, extract read counts, normalise, report errors
 def readData(inputFile, label1, label2, normalise=True, removeZeros=False, useSpikeIns = False, verbose = False, ):
@@ -130,12 +113,6 @@ def readData(inputFile, label1, label2, normalise=True, removeZeros=False, useSp
 			ids.append(idx)
 
 	if normalise:
-		# splitColumn = array(data1).shape[1]
-		# dataNormal = _normalise( hstack( ( array(data1), array(data2) ) ) )
-
-		# data1, data2 = hsplit( array(dataNormal), [splitColumn])
-		# data1 = data1.tolist()
-		# data2 = data2.tolist()
 
 		if useSpikeIns:
 			if len(spikeIns) == 0:
@@ -275,7 +252,7 @@ def getParamsMoments(p):
 		beta = 2 * (r2 - r1) * (r1 - r3) * (r3 - r2) / ((r1*r2 - 2*r1*r3 + r2*r3) *(r1 - 2*r2 + r3))
 		gamma = (-r1*r2 + 2*r1*r3 - r2*r3) / (r1 - 2*r2 +r3)
 	except:
-		return Params(-1,-1,-1, 0)
+		return Params(-1,-1,-1,-1)
 
 	return Params(alpha, beta, gamma, 0)
 
@@ -295,7 +272,7 @@ def getParamsBayesian(p, iterN=1000):
 	else:
 		params = Params(alpha = RVar(0.5), beta = RVar(0.5), gamma = RVar(mean(p)+1e6), c = [ RVar(0.5) for i in range(len(p)) ] )
 
-	bioParams = BioParams(tau = RVar(), f = RVar(), t = RVar() )
+	bioParams = BioParams(size = RVar(), freq = RVar(), duty = RVar() )
 
 	save = False
 
@@ -308,7 +285,7 @@ def getParamsBayesian(p, iterN=1000):
 			beta = params.beta.value
 			gamma = params.gamma.value
 
-			bioParams.tau.sample.append( gamma / beta )
+			bioParams.size.sample.append( gamma / beta )
 			bioParams.f.sample.append( alpha )
 			bioParams.t.sample.append( alpha / (alpha + beta)  )
 
