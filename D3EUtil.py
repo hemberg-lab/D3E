@@ -286,8 +286,8 @@ def getParamsBayesian(p, iterN=1000):
 			gamma = params.gamma.value
 
 			bioParams.size.sample.append( gamma / beta )
-			bioParams.f.sample.append( alpha )
-			bioParams.t.sample.append( alpha / (alpha + beta)  )
+			bioParams.freq.sample.append( alpha )
+			bioParams.duty.sample.append( beta / (alpha + beta)  )
 
 		for c,pi in zip(params.c,p):
 			c.setSampleFunction(lambda x: (params.alpha.value - 1 ) * log(x) + (params.beta.value - 1) * log(1-x) + pi * log(x) - params.gamma.value * x)
