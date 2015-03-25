@@ -12,9 +12,9 @@ D<sup>3</sup>E is a tool for identifying differentially-expressed genes, based o
 
 To run D<sup>3</sup>E analysis please run D3ECmd.py:
 
-'''
+```
 python D3ECmd.py InputFile OutputFile Label1 Label2 [-m {1,2}] [-z {0,1}] [-n {1,0}] [-s {1,0}] [-v]
-'''
+```
 
 **Mandatory arguments:**
 
@@ -34,9 +34,9 @@ python D3ECmd.py InputFile OutputFile Label1 Label2 [-m {1,2}] [-z {0,1}] [-n {1
 
 D3ECmd.py accepts a tab-separated read-count table, where rows correspond to genes, and columns correspond to individual cells. The file should have a header row which has the following tab-separated format:
 
-'''
+```
 "GeneID	Label<sub>1</sub>	Label<sub>2</sub>	Label<sub>3</sub>	... "
-'''
+```
 
 where L<sub>i</sub> are the cell type labels. Differential expression analysis can be performed on two cell types at a time. 
 
