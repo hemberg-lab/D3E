@@ -41,7 +41,7 @@ def logStatus(status):
 # Read a header of an input file, get indeces of colums that match specified labels
 def _readHeader(header, label1, label2):
 
-	if header.startswith('GeneId'):
+	if header.startswith('GeneID'):
 		tabs = header.split('\t')
 
 		colIdx1 = [i for i,x in enumerate(tabs) if x == label1 ]
@@ -287,7 +287,7 @@ def getParamsBayesian(p, iterN=1000):
 
 			bioParams.size.sample.append( gamma / beta )
 			bioParams.freq.sample.append( alpha )
-			bioParams.duty.sample.append( beta / (alpha + beta)  )
+			bioParams.duty.sample.append( alpha / (alpha + beta)  )
 
 		for c,pi in zip(params.c,p):
 			c.setSampleFunction(lambda x: (params.alpha.value - 1 ) * log(x) + (params.beta.value - 1) * log(1-x) + pi * log(x) - params.gamma.value * x)
@@ -306,9 +306,14 @@ def getParamsBayesian(p, iterN=1000):
 
 def goodnessOfFit(p, params):
 
-	alpha = params.alpha.mean()
-	beta = params.beta.mean()
-	gamma = params.gamma.mean()
+	try:
+		alpha = params.alpha.mean()
+		beta = params.beta.mean()
+		gamma = params.gamma.mean()
+	except:
+		alpha = params.alpha
+		beta = params.beta
+		gamma = params.gamma
 
 	pr = randPoissonBeta( Params(alpha,beta,gamma,0), len(p))
 

@@ -46,7 +46,7 @@ if args.verbose:
 		logStatus(status)
 
 if args.mode == 1:
-	args.outputFile.write('#GeneID\ta1\tb1\tg1\t\ta2\tb2\tg2\t\ts1\tf1\td1\t\ts2\tf2\td2\t\tp-value\t\tmu1\tmu2\n\n')
+	args.outputFile.write('#GeneID\ta1\tb1\tg1\tGOF1\t\ta2\tb2\tg2\tGOF2\t\ts1\tf1\td1\t\ts2\tf2\td2\t\tRs\tRf\tRd\t\tp-value\t\tmu1\tmu2\n\n')
 elif args.mode == 2:
 	args.outputFile.write('#GeneID\ta1\tb1\tg1\tGOF1\t\ta2\tb2\tg2\tGOF2\t\ts1\tf1\td1\t\ts2\tf2\td2\t\tRs\tRf\tRd\t\tpSize\tpFreq\tpDuty\t\tp-value\t\tmu1\tmu2\n\n')
 
@@ -84,27 +84,32 @@ for p1,p2,idx in zip(data1, data2, ids):
 		dutyP = cramerVonMises(bioParams1.duty.sample, bioParams2.duty.sample)
 		checkCramerVonMises(dutyP, 'for t', idx)
 
-		gof1 = goodnessOfFit(p1, params1)
-		checkCramerVonMises(gof1, 'Goodnes of fit for a first cell type', idx)
+	gof1 = goodnessOfFit(p1, params1)
+	checkCramerVonMises(gof1, 'Goodnes of fit for a first cell type', idx)
 
-		gof2 = goodnessOfFit(p2, params2)
-		checkCramerVonMises(gof1, 'Goodnes of fit for a second cell type', idx)
+	gof2 = goodnessOfFit(p2, params2)
+	checkCramerVonMises(gof1, 'Goodnes of fit for a second cell type', idx)
 
 	if args.mode == 1:
-		args.outputFile.write('{0:s}\t\t{1:2.2f}\t{2:2.2f}\t{3:2.2f}\t\t{4:2.2f}\t{5:2.2f}\t{6:2.2f}'
-								'\t\t{7:2.2f}\t{8:2.2f}\t{9:2.2f}\t\t{10:2.2f}\t{11:2.2f}\t{12:2.2f}'
-								'\t\t{13:2.2e}\t\t{14:2.2f}\t{15:2.2f}\n'.format(idx,
-								params1.alpha, params1.beta, params1.gamma,
-								params2.alpha, params2.beta, params2.gamma,
+		args.outputFile.write('{0:s}\t\t{1:4.4f}\t{2:4.4f}\t{3:4.4f}\t{4:4.4e}\t\t'
+								'{5:4.4f}\t{6:4.4f}\t{7:4.4f}\t{8:4.4e}\t\t'
+								'{9:4.4f}\t{10:4.4f}\t{11:4.4f}\t\t{12:4.4f}\t{13:4.4f}\t{14:4.4f}\t\t'
+								'{15:4.4f}\t{16:4.4f}\t{17:4.4f}\t\t'
+								'{18:4.4e}\t\t{19:4.4f}\t{20:4.4f}\n'.format(idx,
+								params1.alpha, params1.beta, params1.gamma, gof1,
+								params2.alpha, params2.beta, params2.gamma, gof2,
 								bioParams1.size, bioParams1.freq, bioParams1.duty,
 								bioParams2.size, bioParams2.freq, bioParams2.duty,
-								difference, mean(p1), mean(p2)))
+								log2( bioParams1.size / bioParams2.size ),
+								log2( bioParams1.freq / bioParams2.freq ),
+								log2( bioParams1.duty / bioParams2.duty ),
+								difference, mean(p1), mean(p2)) )
 	elif args.mode == 2:
-		args.outputFile.write('{0:s}\t\t{1:2.2f}\t{2:2.2f}\t{3:2.2f}\t{4:2.2e}\t\t'
-								'{5:2.2f}\t{6:2.2f}\t{7:2.2f}\t{8:2.2e}\t\t'
-								'{9:2.2f}\t{10:2.2f}\t{11:2.2f}\t\t{12:2.2f}\t{13:2.2f}\t{14:2.2f}\t\t'
-								'{15:2.2f}\t{16:2.2f}\t{17:2.2f}\t'
-								'{18:2.2e}\t{19:2.2e}\t{20:2.2e}\t\t{21:2.2e}\t\t{22:2.2f}\t{23:2.2f}\n'.format(idx,
+		args.outputFile.write('{0:s}\t\t{1:4.4f}\t{2:4.4f}\t{3:4.4f}\t{4:4.4e}\t\t'
+								'{5:4.4f}\t{6:4.4f}\t{7:4.4f}\t{8:4.4e}\t\t'
+								'{9:4.4f}\t{10:4.4f}\t{11:4.4f}\t\t{12:4.4f}\t{13:4.4f}\t{14:4.4f}\t\t'
+								'{15:4.4f}\t{16:4.4f}\t{17:4.4f}\t'
+								'{18:4.4e}\t{19:4.4e}\t{20:4.4e}\t\t{21:4.4e}\t\t{22:4.4f}\t{23:4.4f}\n'.format(idx,
 								params1.alpha.mean(), params1.beta.mean(), params1.gamma.mean(), gof1,
 								params2.alpha.mean(), params2.beta.mean(), params2.gamma.mean(), gof2,
 								bioParams1.size.mean(), bioParams1.freq.mean(), bioParams1.duty.mean(),
