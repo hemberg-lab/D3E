@@ -92,11 +92,11 @@ for p1,p2,idx in zip(data1, data2, ids):
 								'{20:2.2e}\n').format(idx,
 								params1.alpha, params1.beta, params1.gamma,
 								params2.alpha, params2.beta, params2.gamma,
-								bioParams1.tau, bioParams1.f, bioParams1.t,
-								bioParams2.tau, bioParams2.f, bioParams2.t,
-								log2( bioParams1.tau / bioParams2.tau),
-								log2( bioParams1.f / bioParams2.f),
-								log2( bioParams1.t / bioParams2.t),
+								bioParams1.size, bioParams1.freq, bioParams1.duty,
+								bioParams2.size, bioParams2.freq, bioParams2.duty,
+								log2( bioParams1.size / bioParams2.size),
+								log2( bioParams1.freq / bioParams2.freq),
+								log2( bioParams1.duty / bioParams2.duty),
 								mean(p1), mean(p2), variation(p1), variation(p2),
 								difference)
 		rowVals = rowString.split('\t')
