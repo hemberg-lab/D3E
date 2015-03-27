@@ -41,7 +41,7 @@ def logStatus(status):
 # Read a header of an input file, get indeces of colums that match specified labels
 def _readHeader(header, label1, label2):
 
-	if header.lower.startswith('geneid'):
+	if header.lower().startswith('geneid'):
 		tabs = header.split('\t')
 
 		colIdx1 = [i for i,x in enumerate(tabs) if x == label1 ]
