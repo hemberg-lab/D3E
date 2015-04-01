@@ -29,7 +29,7 @@ def getBioParams(params):
 	beta = params.beta
 	gamma = params.gamma
 
-	return BioParams( gamma / beta, alpha, alpha / (alpha + beta) )
+	return BioParams( gamma / beta, alpha, alpha * beta / (alpha + beta) )
 
 inputString = fileinput.input()[0].rstrip('\n')
 

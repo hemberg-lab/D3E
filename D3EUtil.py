@@ -20,9 +20,8 @@ from scipy.special import kv, gammaln
 from scipy.stats import gmean
 from decimal import Decimal, getcontext
 from collections import namedtuple
-from rvar import RVar
-from numpy import log, array, zeros, median, rint, power, hstack, hsplit, seterr, mean
-from numpy.random import beta, poisson
+from numpy import log, array, zeros, median, rint, power, hstack, hsplit, seterr, mean, isnan, floor
+from numpy.random import beta, poisson, random
 import sympy.mpmath as mp
 
 seterr(all='ignore')
@@ -33,6 +32,78 @@ mp.mp.pretty = True
 Params = namedtuple("Params", ["alpha", "beta", "gamma", "c"])
 BioParams = namedtuple("BioParams", ["size", "freq", "duty"])
 Status = namedtuple("LineStatus", ["code", "idx", "message"])
+
+
+class RVar:
+
+	def __init__(self, value=0):
+		self.value = value
+		self.leftLimit = 0
+		self.rightLimit = float('Inf')
+		self.sample = []
+
+	def mean(self):
+		return mean(self.sample)
+
+	def setSampleFunction(self, function):
+		self.sampleFunction = function
+
+	def draw(self, maxSteps=1000, saveToSample = False):
+
+		x0 = self.value
+		w = abs(self.value / 2)
+
+		f = self.sampleFunction;
+
+		logPx = f(x0)
+		logSlice  = log(random()) + logPx
+
+		xLeft = x0 - random() * w
+		xRight = xLeft + w
+
+		if xLeft < self.leftLimit:
+			xLeft = self.leftLimit
+		if xRight > self.rightLimit:
+			xRight = self.rightLimit
+
+		v = random()
+
+		j = floor(maxSteps*v)
+		k = maxSteps-1 - j
+		
+		while j > 0 and logSlice < f(xLeft) and xLeft - w > self.leftLimit:
+			j = j-1
+			xLeft = xLeft - w
+
+		
+		while k > 0 and logSlice < f(xRight) and xRight + w < self.rightLimit:
+			k = k - 1
+			xRight = xRight + w
+
+		n = 10000
+
+		while 1:
+			n = n - 1
+			if n < 0 :
+				print "Warning: Can't find a new value."
+				return x0
+
+
+			x1 = (xRight - xLeft) * random() + xLeft
+			
+			if logSlice <= f(x1):
+				break
+			if x1 < x0:
+				xLeft = x1
+			else:
+				xRight = x1
+		self.value = x1
+
+		if saveToSample:
+			self.sample.append(x1)
+
+		return x1
+
 
 def logStatus(status):
 	statusType = ['Log','Warning','Error']
@@ -60,7 +131,7 @@ def _normalisationWeights(data):
 	return weights
 
 # Read input data file, extract read counts, normalise, report errors
-def readData(inputFile, label1, label2, normalise=True, removeZeros=False, useSpikeIns = False, verbose = False, ):
+def readData(inputFile, label1, label2, normalise=True, removeZeros=False, useSpikeIns = False, verbose = False):
 
 	data1 = []
 	data2 = []
@@ -286,7 +357,7 @@ def getParamsBayesian(p, iterN=1000):
 			gamma = params.gamma.value
 
 			bioParams.size.sample.append( gamma / beta )
-			bioParams.freq.sample.append( alpha )
+			bioParams.freq.sample.append( alpha*beta / (alpha + beta) )
 			bioParams.duty.sample.append( alpha / (alpha + beta)  )
 
 		for c,pi in zip(params.c,p):
