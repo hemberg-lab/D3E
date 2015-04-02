@@ -166,8 +166,7 @@ def readData(inputFile, label1, label2, normalise=True, removeZeros=False, useSp
 			p1 = [ float(cols[x]) for x in colIdx1 ]
 			p2 = [ float(cols[x]) for x in colIdx2 ]
 
-
-			if max(p1) == 0 or max(p2) == 0:
+			if max(p1) == 0 and max(p2) == 0:
 				lineStatus.append( Status(1, idx,  "Null expression detected") )
 				continue
 			else:
