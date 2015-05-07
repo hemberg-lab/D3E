@@ -31,10 +31,9 @@ parser.add_argument(action = 'store', type=FileType('w'), dest = 'outputFile', h
 parser.add_argument(action = 'store', type = str, nargs = 1, dest = 'label1', help = 'Label for the first cell type / condition')
 parser.add_argument(action = 'store', type = str, nargs = 1, dest = 'label2', help = 'Label for the second cell type / condition')
 
-parser.add_argument('-m', '--mode', action = 'store', type = int, dest='mode', default = 1, choices =[0,1,2,3], help = 'Mode of operation\n ' \
-													'0: Apply Method of moments\n'
-													'1: Apply Bayesian approach (default)\n'\
-													'2: Apply Bayesian approach and additionally outputs GOF\n')
+parser.add_argument('-m', '--mode', action = 'store', type = int, dest='mode', default = 2, choices =[1,2], help = 'Mode of operation\n ' \
+													'1: Apply Method of moments\n'
+													'2: Apply Bayesian approach (default)\n'\
 parser.add_argument('-n','--normalise', action = 'store', type = int, dest='normalise', default = 1, choices = [0,1], help='Normalise the data')
 parser.add_argument('-z', '--removeZeros', action = 'store', type = int, dest='removeZeros', default = 0, choices = [0,1], help='Remove zeros')
 parser.add_argument('-s', '--useSpikeIns', action = 'store', type = int, dest='useSpikeIns', default = 0, choices = [0,1], help='Use spike-ins for normalisation. Requires at least one row with id starting with "spike" ')
