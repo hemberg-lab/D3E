@@ -14,7 +14,7 @@ sympy.mpmath 0.18
 '''
 from __future__ import division
 
-from D3EUtil import readData, getParamsBayesian, getParamsMoments, cramerVonMises, logStatus, goodnessOfFit
+from D3EUtil import readData, getParamsBayesian, getParamsMoments, cramerVonMises, logStatus, goodnessOfFit, distributionTest
 from D3EUtil import Params, BioParams, Status 
 
 from argparse import ArgumentParser, FileType
@@ -31,13 +31,18 @@ parser.add_argument(action = 'store', type=FileType('w'), dest = 'outputFile', h
 parser.add_argument(action = 'store', type = str, nargs = 1, dest = 'label1', help = 'Label for the first cell type / condition')
 parser.add_argument(action = 'store', type = str, nargs = 1, dest = 'label2', help = 'Label for the second cell type / condition')
 
-parser.add_argument('-m', '--mode', action = 'store', type = int, dest='mode', default = 2, choices =[1,2], help = 'Mode of operation\n ' \
-													'1: Apply Method of moments\n'
-													'2: Apply Bayesian approach\n')
+parser.add_argument('-m', '--mode', action = 'store', type = int, dest='mode', default = 1, choices =[0,1], help = 'Mode of operation\n '\
+													'0: Apply Method of moments\n'
+													'1: Apply Bayesian approach (default)\n')
+
+parser.add_argument('-t', '--test', action = 'store', type = int, dest = 'test', default = 0, choices = [0,1,2], help = 'Statistical test\n '\
+													'0: Cramer-von Mises test (default)\n'
+													'1: Kolmogorov-Smirnov test\n'
+													'2: Anderson-Darling test\n')
 parser.add_argument('-n','--normalise', action = 'store', type = int, dest='normalise', default = 1, choices = [0,1], help='Normalise the data')
 parser.add_argument('-z', '--removeZeros', action = 'store', type = int, dest='removeZeros', default = 0, choices = [0,1], help='Remove zeros')
 parser.add_argument('-s', '--useSpikeIns', action = 'store', type = int, dest='useSpikeIns', default = 0, choices = [0,1], help='Use spike-ins for normalisation. Requires at least one row with id starting with "spike" ')
-parser.add_argument('-v', action = 'store_const', const = True, dest = 'verbose', default = False, help = 'verbose')
+parser.add_argument('-v', action = 'store_const', const = True, dest = 'verbose', default = True, help = 'verbose')
 args = parser.parse_args()
 
 data1, data2, ids, lineStatus = readData(args.inputFile, args.label1[0], args.label2[0], args.normalise, args.removeZeros, args.useSpikeIns)
@@ -54,13 +59,13 @@ elif args.mode == 2:
 
 for p1,p2,idx in zip(data1, data2, ids):
 
-	difference = cramerVonMises(p1,p2)
+	difference = distributionTest(p1,p2, args.test)
 	
 	if difference == -1:
-		logStatus( Status(1, idx, "Could not estimate Cramer-von Mises statistic. Further analysis aborted.") )
+		logStatus( Status(1, idx, "Could not estimate p-value. Further analysis aborted.") )
 		continue
 
-	if args.mode == 1:
+	if args.mode == 0:
 		params1 = getParamsMoments(p1)
 		params2 = getParamsMoments(p2)
 
@@ -76,7 +81,7 @@ for p1,p2,idx in zip(data1, data2, ids):
 			bioParams1 = BioParams(size = params1.gamma / params1.beta, freq = 1 / params1.alpha, duty = params1.alpha / (params1.alpha + params1.beta) )
 			bioParams2 = BioParams(size = params2.gamma / params2.beta, freq = 1 / params2.alpha, duty = params2.alpha / (params2.alpha + params2.beta) )
 	
-	elif args.mode == 2:
+	elif args.mode == 1:
 
 		params1, bioParams1 = getParamsBayesian(p1)
 		params2, bioParams2 = getParamsBayesian(p2)
@@ -96,7 +101,7 @@ for p1,p2,idx in zip(data1, data2, ids):
 	gof2 = goodnessOfFit(p2, params2)
 	checkCramerVonMises(gof1, 'Goodnes of fit for a second cell type', idx)
 
-	if args.mode == 1:
+	if args.mode == 0:
 		args.outputFile.write('{0:s}\t\t{1:4.4f}\t{2:4.4f}\t{3:4.4f}\t{4:4.4e}\t\t'
 								'{5:4.4f}\t{6:4.4f}\t{7:4.4f}\t{8:4.4e}\t\t'
 								'{9:4.4f}\t{10:4.4f}\t{11:4.4f}\t\t{12:4.4f}\t{13:4.4f}\t{14:4.4f}\t\t'
@@ -110,7 +115,7 @@ for p1,p2,idx in zip(data1, data2, ids):
 								log2( bioParams1.freq / bioParams2.freq ),
 								log2( bioParams1.duty / bioParams2.duty ),
 								difference, mean(p1), variation(p1), mean(p2), variation(p2)) )
-	elif args.mode == 2:
+	elif args.mode == 1:
 		args.outputFile.write('{0:s}\t\t{1:4.4f}\t{2:4.4f}\t{3:4.4f}\t{4:4.4e}\t\t'
 								'{5:4.4f}\t{6:4.4f}\t{7:4.4f}\t{8:4.4e}\t\t'
 								'{9:4.4f}\t{10:4.4f}\t{11:4.4f}\t\t{12:4.4f}\t{13:4.4f}\t{14:4.4f}\t\t'

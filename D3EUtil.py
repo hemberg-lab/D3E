@@ -1,15 +1,14 @@
 '''
-D3E
-Discrete Distributional Differential Expression
 
-A set of functions, which are used by D3E Tool
+D3E-Cmd
+Discrete Distributional Differential Expression Command Line Tool
 
 Author: Mihails Delmans (md656@cam.ac.uk)
 Advisor: Martin Hemberg (mh26@sanger.ac.uk)
 Version: 1.0
 
 Tested with:
-scipy 0.13.0b1
+scipy 0.15.1
 numpy 1.8.0rc1
 sympy.mpmath 0.18
 
@@ -17,7 +16,7 @@ sympy.mpmath 0.18
 
 from __future__ import division
 from scipy.special import kv, gammaln
-from scipy.stats import gmean
+from scipy.stats import gmean, ks_2samp, anderson_ksamp
 from decimal import Decimal, getcontext
 from collections import namedtuple
 from numpy import log, array, zeros, median, rint, power, hstack, hsplit, seterr, mean, isnan, floor
@@ -291,7 +290,30 @@ def cramerVonMises(x, y):
 		print e
 		return -1
 
+# Perform a Kolmogorov-Smirnov test of two samples x and y. H0: samples x and y are drawn from the same distribution. Returns a p-value.
+def KSTest(x, y):
+	try:
+		return ks_2samp(x,y)[1]
 
+	except Exception as e:
+		print e
+		return -1
+
+# Perform a Anderson-Darling test of two samples x and y. H0: samples x and y are drawn from the same distribution. Returns am interpolated p-value.
+def ADTest(x,y):
+	try:
+		return anderson_ksamp([x,y])[2]
+	except Exception as e:
+		print e
+		return -1
+
+def distributionTest(x,y,method):
+	if method == 1:
+		return KSTest(x,y)
+	elif method == 2:
+		return ADTest(x,y)
+	else:
+		return cramerVonMises(x,y)
 
 # Generation of a sample from Poisson-beta distribution with given parameters parms and size n
 def randPoissonBeta(params,n):
