@@ -1,7 +1,7 @@
 #D<sup>3</sup>E: Discrete Distributional Differential Expression
 
 ##About
-D<sup>3</sup>E is a tool for identifying differentially-expressed genes, based on single-cell RNA-seq data. The main assumption we use in our method is that expression of transcripts follows Poisson-beta distribution with three parameters &alpha;, &beta; and &gamma;. The first two correspond to the rate of gene activation and deactivation, and the latter corresponds to the rate of transcription when a gene is in an active state. A web-version can be accessed at http://www.sanger.ac.uk/sanger/GeneRegulation_D3E/
+D<sup>3</sup>E is a tool for identifying differentially-expressed genes, based on single-cell RNA-seq data. D<sup>3</sup>E consists of two modules: one for identifying differentially expressed (DE) genes, and one for fitting the parameters of a Poisson-Beta distribution. A web-version which can be used for small samples can be accessed at http://www.sanger.ac.uk/sanger/GeneRegulation_D3E/
 
 ##Files
 - **D3EUtil.py** : a collection of methods for running the D<sup>3</sup>E analysis
