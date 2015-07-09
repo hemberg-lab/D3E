@@ -70,9 +70,9 @@ if args.verbose:
 
 
 if args.mode == 0:
-	args.outputFile.write('#GeneID\ta1\tb1\tg1\tGOF1\t\ta2\tb2\tg2\tGOF2\t\ts1\tf1\td1\t\ts2\tf2\td2\t\tRs\tRf\tRd\t\tp-value\t\tmu1\tcv1\t\tmu2\tcv2\n\n')
+	args.outputFile.write('#GeneID\ta1\tb1\tg1\tGOF1\ta2\tb2\tg2\tGOF2\ts1\tf1\td1\ts2\tf2\td2\tRs\tRf\tRd\tp-value\tmu1\tcv1\tmu2\tcv2\n\n')
 elif args.mode == 1:
-	args.outputFile.write('#GeneID\ta1\tb1\tg1\tGOF1\t\ta2\tb2\tg2\tGOF2\t\ts1\tf1\td1\t\ts2\tf2\td2\t\tRs\tRf\tRd\t\tpSize\tpFreq\tpDuty\t\tp-value\t\tmu1\tcv1\t\tmu2\tcv2\n\n')
+	args.outputFile.write('#GeneID\ta1\tb1\tg1\tGOF1\ta2\tb2\tg2\tGOF2\ts1\tf1\td1\ts2\tf2\td2\tRs\tRf\tRd\tpSize\tpFreq\tpDuty\tp-value\tmu1\tcv1\tmu2\tcv2\n\n')
 
 for p1,p2,idx in zip(data1, data2, ids):
 
@@ -119,11 +119,11 @@ for p1,p2,idx in zip(data1, data2, ids):
 	checkCramerVonMises(gof1, 'Goodnes of fit for a second cell type', idx)
 
 	if args.mode == 0:
-		args.outputFile.write('{0:s}\t\t{1:4.4f}\t{2:4.4f}\t{3:4.4f}\t{4:4.4e}\t\t'
-								'{5:4.4f}\t{6:4.4f}\t{7:4.4f}\t{8:4.4e}\t\t'
-								'{9:4.4f}\t{10:4.4f}\t{11:4.4f}\t\t{12:4.4f}\t{13:4.4f}\t{14:4.4f}\t\t'
-								'{15:4.4f}\t{16:4.4f}\t{17:4.4f}\t\t'
-								'{18:4.4e}\t\t{19:4.4f}\t{20:4.4f}\t\t{21:4.4f}\t{22:4.4f}\n'.format(idx,
+		args.outputFile.write('{0:s}\t{1:4.4f}\t{2:4.4f}\t{3:4.4f}\t{4:4.4e}\t'
+								'{5:4.4f}\t{6:4.4f}\t{7:4.4f}\t{8:4.4e}\t'
+								'{9:4.4f}\t{10:4.4f}\t{11:4.4f}\t{12:4.4f}\t{13:4.4f}\t{14:4.4f}\t'
+								'{15:4.4f}\t{16:4.4f}\t{17:4.4f}\t'
+								'{18:4.4e}\t{19:4.4f}\t{20:4.4f}\t{21:4.4f}\t{22:4.4f}\n'.format(idx,
 								params1.alpha, params1.beta, params1.gamma, gof1,
 								params2.alpha, params2.beta, params2.gamma, gof2,
 								bioParams1.size, bioParams1.freq, bioParams1.duty,
@@ -133,11 +133,11 @@ for p1,p2,idx in zip(data1, data2, ids):
 								log2( bioParams1.duty / bioParams2.duty ),
 								difference, mean(p1), variation(p1), mean(p2), variation(p2)) )
 	elif args.mode == 1:
-		args.outputFile.write('{0:s}\t\t{1:4.4f}\t{2:4.4f}\t{3:4.4f}\t{4:4.4e}\t\t'
-								'{5:4.4f}\t{6:4.4f}\t{7:4.4f}\t{8:4.4e}\t\t'
-								'{9:4.4f}\t{10:4.4f}\t{11:4.4f}\t\t{12:4.4f}\t{13:4.4f}\t{14:4.4f}\t\t'
+		args.outputFile.write('{0:s}\t{1:4.4f}\t{2:4.4f}\t{3:4.4f}\t{4:4.4e}\t'
+								'{5:4.4f}\t{6:4.4f}\t{7:4.4f}\t{8:4.4e}\t'
+								'{9:4.4f}\t{10:4.4f}\t{11:4.4f}\t{12:4.4f}\t{13:4.4f}\t{14:4.4f}\t'
 								'{15:4.4f}\t{16:4.4f}\t{17:4.4f}\t'
-								'{18:4.4e}\t{19:4.4e}\t{20:4.4e}\t\t{21:4.4e}\t\t{22:4.4f}\t{23:4.4f}\t\t{24:4.4f}\t{25:4.4f}\n'.format(idx,
+								'{18:4.4e}\t{19:4.4e}\t{20:4.4e}\t{21:4.4e}\t{22:4.4f}\t{23:4.4f}\t{24:4.4f}\t{25:4.4f}\n'.format(idx,
 								params1.alpha.mean(), params1.beta.mean(), params1.gamma.mean(), gof1,
 								params2.alpha.mean(), params2.beta.mean(), params2.gamma.mean(), gof2,
 								bioParams1.size.mean(), bioParams1.freq.mean(), bioParams1.duty.mean(),
