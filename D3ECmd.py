@@ -69,9 +69,9 @@ if args.verbose:
 		logStatus(status)
 
 
-if args.mode == 1:
+if args.mode == 0:
 	args.outputFile.write('#GeneID\ta1\tb1\tg1\tGOF1\t\ta2\tb2\tg2\tGOF2\t\ts1\tf1\td1\t\ts2\tf2\td2\t\tRs\tRf\tRd\t\tp-value\t\tmu1\tcv1\t\tmu2\tcv2\n\n')
-elif args.mode == 2:
+elif args.mode == 1:
 	args.outputFile.write('#GeneID\ta1\tb1\tg1\tGOF1\t\ta2\tb2\tg2\tGOF2\t\ts1\tf1\td1\t\ts2\tf2\td2\t\tRs\tRf\tRd\t\tpSize\tpFreq\tpDuty\t\tp-value\t\tmu1\tcv1\t\tmu2\tcv2\n\n')
 
 for p1,p2,idx in zip(data1, data2, ids):
