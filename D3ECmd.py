@@ -58,7 +58,7 @@ parser.add_argument('-t', '--test', action = 'store', type = int, dest = 'test',
 													'2: Anderson-Darling test\n')
 parser.add_argument('-n','--normalise', action = 'store', type = int, dest='normalise', default = 1, choices = [0,1], help='Normalise the data')
 parser.add_argument('-z', '--removeZeros', action = 'store', type = int, dest='removeZeros', default = 0, choices = [0,1], help='Remove zeros')
-parser.add_argument('-s', '--useSpikeIns', action = 'store', type = int, dest='useSpikeIns', default = 0, choices = [0,1], help='Use spike-ins for normalisation. Requires at least one row with id starting with "spike" ')
+parser.add_argument('-s', '--useSpikeIns', action = 'store', type = int, dest='useSpikeIns', default = 0, choices = [0,1], help='Use spike-ins for normalisation. Requires at least one row with id starting with "spike" or the string set with --spikeInStart ')
 parser.add_argument('--spikeInStart', action = 'store', type = str, nargs = 1, dest = 'spikeInStart', default = 'spike', help = 'A string to identify spike-ins. (spike)', metavar = 'spike')
 parser.add_argument('-v', action = 'store_const', const = True, dest = 'verbose', default = True, help = 'verbose')
 args = parser.parse_args()
