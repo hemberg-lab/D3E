@@ -60,6 +60,7 @@ parser.add_argument('-n','--normalise', action = 'store', type = int, dest='norm
 parser.add_argument('-z', '--removeZeros', action = 'store', type = int, dest='removeZeros', default = 0, choices = [0,1], help='Remove zeros')
 parser.add_argument('-s', '--useSpikeIns', action = 'store', type = int, dest='useSpikeIns', default = 0, choices = [0,1], help='Use spike-ins for normalisation. Requires at least one row with id starting with "spike" ')
 parser.add_argument('-v', action = 'store_const', const = True, dest = 'verbose', default = True, help = 'verbose')
+parser.add_argument('-f', '--fdr', action = 'store', type = float, dest = 'fdr', default = 1, help='FDR parameter')
 args = parser.parse_args()
 
 data1, data2, ids, lineStatus = readData(args.inputFile, args.label1[0], args.label2[0], args.normalise, args.removeZeros, args.useSpikeIns)
@@ -74,6 +75,8 @@ if args.mode == 0:
 elif args.mode == 1:
 	args.outputFile.write('#GeneID\ta1\tb1\tg1\tGOF1\ta2\tb2\tg2\tGOF2\ts1\tf1\td1\ts2\tf2\td2\tRs\tRf\tRd\tpSize\tpFreq\tpDuty\tp-value\tmu1\tcv1\tmu2\tcv2\n\n')
 
+pVals = []
+
 for p1,p2,idx in zip(data1, data2, ids):
 
 	difference = distributionTest(p1,p2, args.test)
@@ -81,6 +84,8 @@ for p1,p2,idx in zip(data1, data2, ids):
 	if difference == -1:
 		logStatus( Status(1, idx, "Could not estimate p-value. Further analysis aborted.") )
 		continue
+
+	pVals.append(difference)
 
 	if args.mode == 0:
 		params1 = getParamsMoments(p1)
@@ -148,5 +153,13 @@ for p1,p2,idx in zip(data1, data2, ids):
 								sizeP,freqP, dutyP, difference, mean(p1), variation(p1), mean(p2), variation(p2) ) )
 
 	logStatus( Status(0, idx, "Analysis complete.") )
+
+pVals.sort(reverse = True)
+n = len(pVals)
+
+for i in range(1,n+1):
+	if pVals[i-1] <= args.fdr * i / len(pVals):
+		logStatus(Status(0, "D3E", "Significance threshold with given fdr(" + str(args.fdr) + ") is: " + str(pVals[i-1]) ))
+		break
 
 args.outputFile.close()
