@@ -32,11 +32,12 @@ along with D3E.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from __future__ import division
-from scipy.special import kv, gammaln
-from scipy.stats import gmean, ks_2samp, anderson_ksamp
+from scipy.special import kv, gammaln, gamma, hyp1f1, factorial
+from scipy.stats import gmean, ks_2samp, anderson_ksamp, chi2
+from scipy.stats import poisson as poissonF
 from decimal import Decimal, getcontext
 from collections import namedtuple
-from numpy import log, array, zeros, median, rint, power, hstack, hsplit, seterr, mean, isnan, floor
+from numpy import log, array, zeros, median, rint, power, hstack, hsplit, seterr, mean, isnan, floor, divide, exp, round, where
 from numpy.random import beta, poisson, random
 import sympy.mpmath as mp
 
@@ -329,6 +330,8 @@ def distributionTest(x,y,method):
 		return KSTest(x,y)
 	elif method == 2:
 		return ADTest(x,y)
+	elif method == 3:
+		return 0
 	else:
 		return cramerVonMises(x,y)
 
@@ -428,6 +431,70 @@ def goodnessOfFit(p, params):
 
 	return cramerVonMises(pr,p)
 
+# Find log of likelihood for sample 'p' with parameters 'params', doing poisson-beta sampling 'n' times 
+def logLikelihood(p, params, n, idx):
+	
+	try:
+		alpha = params.alpha.mean()
+		beta_ = params.beta.mean()
+		gamma =  int(round(params.gamma.mean()))+1
+	except:
+		alpha = params.alpha
+		beta_ = params.beta
+		gamma =  int(round(params.gamma))+1
 
+
+	if n * gamma > 1e9:
+		n = int( round(1e9 / gamma) )
+		logStatus( Status(1, idx, "Reduced Poisson-Beta sample to " + str(n) + ".") )
+
+	pVal = []
+
+	for item in p:
+		x = beta(alpha, beta_, n)
+		pTemp = 0
+
+		for i in range(n):
+			pTemp += poissonF.pmf(item, gamma*x[i])
+		pVal.append(pTemp / n)
+
+	pVal = array(pVal)
+	pVal[where(pVal==0)] = 1/n
+
+	return sum(log(pVal))
+
+# Perform likelihood ratio test fitted parameters
+def likelihoodRatio(idx, p, params1, params2, n=100):
+
+	try:
+		alpha1 = params1.alpha.mean()
+		beta1 = params1.beta.mean()
+		gamma1 = round(params1.gamma.mean()) + 1
+	except:
+		alpha1 = params1.alpha
+		beta1 = params1.beta
+		gamma1 = round(params1.gamma) + 1
+
+	try:
+		alpha2 = params2.alpha.mean()
+		beta2 = params2.beta.mean()
+		gamma2 = round(params2.gamma.mean()) + 1
+	except:
+		alpha2 = params2.alpha
+		beta2 = params2.beta
+		gamma2 = round(params2.gamma) + 1
+
+	sum1 = logLikelihood([int(x) for x in round(p)], params1, n, idx)
+	sum2 = logLikelihood([int(x) for x in round(p)], params2, n, idx)
+
+	ratio = sum1 - sum2
+	
+	if ratio >= 0:
+		logStatus( Status(1, idx, "Could not perform likelihood ratio test.") )
+		return float('nan')
+
+	pVal = chi2.pdf(-2*ratio,3)
+
+	return pVal
 
 

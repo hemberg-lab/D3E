@@ -32,7 +32,7 @@ along with D3E.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
 
 from D3EUtil import readData, getParamsBayesian, getParamsMoments, cramerVonMises, logStatus, goodnessOfFit, distributionTest
-from D3EUtil import Params, BioParams, Status 
+from D3EUtil import Params, BioParams, Status, likelihoodRatio
 
 from argparse import ArgumentParser, FileType
 from numpy import mean, log2
@@ -52,10 +52,11 @@ parser.add_argument('-m', '--mode', action = 'store', type = int, dest='mode', d
 													'0: Apply Method of moments\n'
 													'1: Apply Bayesian approach (default)\n')
 
-parser.add_argument('-t', '--test', action = 'store', type = int, dest = 'test', default = 0, choices = [0,1,2], help = 'Statistical test\n '\
+parser.add_argument('-t', '--test', action = 'store', type = int, dest = 'test', default = 0, choices = [0,1,2,3], help = 'Statistical test\n '\
 													'0: Cramer-von Mises test (default)\n'
 													'1: Kolmogorov-Smirnov test\n'
-													'2: Anderson-Darling test\n')
+													'2: Anderson-Darling test\n'
+													'3: Likelihood Ratio test\n')
 parser.add_argument('-n','--normalise', action = 'store', type = int, dest='normalise', default = 1, choices = [0,1], help='Normalise the data')
 parser.add_argument('-z', '--removeZeros', action = 'store', type = int, dest='removeZeros', default = 0, choices = [0,1], help='Remove zeros')
 parser.add_argument('-s', '--useSpikeIns', action = 'store', type = int, dest='useSpikeIns', default = 0, choices = [0,1], help='Use spike-ins for normalisation. Requires at least one row with id starting with "spike" ')
@@ -84,8 +85,6 @@ for p1,p2,idx in zip(data1, data2, ids):
 	if difference == -1:
 		logStatus( Status(1, idx, "Could not estimate p-value. Further analysis aborted.") )
 		continue
-
-	pVals.append(difference)
 
 	if args.mode == 0:
 		params1 = getParamsMoments(p1)
@@ -116,6 +115,15 @@ for p1,p2,idx in zip(data1, data2, ids):
 
 		dutyP = cramerVonMises(bioParams1.duty.sample, bioParams2.duty.sample)
 		checkCramerVonMises(dutyP, 'for t', idx)
+
+	if args.test == 3:
+		difference = likelihoodRatio(idx, p2, params1, params2)
+
+	if difference == -1:
+		logStatus( Status(1, idx, "Could not estimate p-value. Further analysis aborted.") )
+		continue
+
+	pVals.append(difference)
 
 	gof1 = goodnessOfFit(p1, params1)
 	checkCramerVonMises(gof1, 'Goodnes of fit for a first cell type', idx)
