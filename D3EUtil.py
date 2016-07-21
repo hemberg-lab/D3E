@@ -148,7 +148,7 @@ def _normalisationWeights(data):
 	return weights
 
 # Read input data file, extract read counts, normalise, report errors
-def readData(inputFile, label1, label2, normalise=True, removeZeros=False, useSpikeIns = False, verbose = False):
+def readData(inputFile, label1, label2, normalise=True, removeZeros=False, useSpikeIns = False, verbose = False, spikeInStart = 'spike'):
 
 	data1 = []
 	data2 = []
@@ -190,7 +190,7 @@ def readData(inputFile, label1, label2, normalise=True, removeZeros=False, useSp
 				lineStatus.append( Status(0, idx,  "Line read OK") )
 
 
-			if idx.lower().startswith('spike'):
+			if idx.lower().startswith(spikeInStart):
 				spikeIns.append( p1 + p2 )
 				lineStatus.append( Status(0, idx,  "Spike-in detected") )
 				continue
