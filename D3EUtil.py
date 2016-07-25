@@ -39,7 +39,7 @@ from decimal import Decimal, getcontext
 from collections import namedtuple
 from numpy import log, array, zeros, median, rint, power, hstack, hsplit, seterr, mean, isnan, floor, divide, exp, round, where
 from numpy.random import beta, poisson, random
-import sympy.mpmath as mp
+import mpmath as mp
 
 seterr(all='ignore')
 
